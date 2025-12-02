@@ -21,8 +21,6 @@ if hero.count_documents({}) == 0:
     hero_data =[
         {'name': 'Guerrier', 'ATK': 15, 'DEF': 10, 'PV': 50}
     ]
-
-#ajoutez une fonction sauvegarde plustard
  
     hero.insert_many(hero_data)
     print("Hero ajouté")
