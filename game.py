@@ -63,5 +63,10 @@ else:
    
  
 class Game:
-    menu()
-        
+    while True:
+        menu()
+        choix = input("Choisissez une option: ")
+        if choix == '1':
+            print ("choisir un héros :")
+            print (hero.find())
+            
