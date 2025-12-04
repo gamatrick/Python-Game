@@ -1,139 +1,144 @@
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 
-client = MongoClient('mongodb://localhost:27017')
-db = client['game_db']
-monstre = db['monstre']
-hero = db['hero']
-sauvegarde = db['sauvegarde']
+class DatabaseHandler:
+    def __init__(self, uri='mongodb://localhost:27017', db_name='game_db'):
+        client = MongoClient(uri)
+        db = client[db_name]
+        self.monsters = db['monstre']
+        self.heroes = db['hero']
+        self.saves = db['sauvegarde']
 
+    def reset_collections(self):
+        """Supprime tout le contenu des collections."""
+        self.monsters.delete_many({})
+        self.heroes.delete_many({})
+        print("Base de données réinitialisée.")
 
-monstre.delete_many({})
-hero.delete_many({})  
+    def init_data(self):
+        """Insère les données de base pour les héros et monstres."""
 
-choix = '0'
-
-# créations de la BDD monstre si elle n'existe pas
-if monstre.count_documents({}) == 0:
-    monstre_data =[
-        {'name': 'Gobelin', 'ATK': 17, 'DEF': 15, 'PV': 120},
-        {'name': 'Orc', 'ATK': 12, 'DEF': 6, 'PV': 45},
-        {'name': 'Squelette', 'ATK': 10, 'DEF': 5, 'PV': 35}
-    ]
-
-    monstre.insert_many(monstre_data)
-    print("Monstre ajouté")
-else:
-    print("Monstre deja ajouté: ", monstre.count_documents({}))
-     
-# créations de la BDD hero si elle n'existe pas   
-if hero.count_documents({}) == 0:
-    hero_data =[
-        {'name': 'Guerrier', 'ATK': 15, 'DEF': 10, 'PV': 50},
-        {'name': 'Sorcier', 'ATK': 25, 'DEF': 3, 'PV': 70},
-        {'name': 'Berserker', 'ATK': 23, 'DEF': 6, 'PV': 105}
-    ]
-
-    hero.insert_many(hero_data)
-    print("Hero ajouté")
-else:
-    print("Hero deja ajouté: ", hero.count_documents({}))
-
-# Fonction pour ajouter un monstre
-def ajouter_monstre(nom, atk, defense, pv):
-    nouveau_monstre = {'name': nom, 'ATK': atk, 'DEF': defense, 'PV': pv}
-    result = monstre.insert_one(nouveau_monstre)
-    print(f"Monstre '{nom}' ajouté (ID: {result.inserted_id})")
-    return result.inserted_id
-
-# Fonction pour ajouter un héros
-def ajouter_hero(nom, atk, defense, pv):
-    nouveau_hero = {'name': nom, 'ATK': atk, 'DEF': defense, 'PV': pv}
-    result = hero.insert_one(nouveau_hero)
-    print(f"Héros '{nom}' ajouté (ID: {result.inserted_id})")
-    return result.inserted_id
-
-def menu_principal():
-    print("==========Menu:===========")
-    print("1. choisir un héros")
-    print("2. Ajouter un héros")
-    print("3. Ajouter un monstre")
-    print("4. Sauvegarder")
-    print("5. Quitter")
-
-def choix_menu_principal(self):
-    choix = input("Choisissez une option: ")
-    if choix == '1':
-        print("Choisir un héros :")
-        for h in self.hero_collection.find():
-            print(f"- {h['name']} (ATK: {h['ATK']}, DEF: {h['DEF']}, PV: {h['PV']})")
-                
-        choix_hero = input("Nom de l'héros choisi: ")
-        hero = self.hero_collection.find_one({'name': choix_hero})
-        if hero:
-            print(f"Vous avez choisi l'héros {hero['name']} avec {hero['PV']} PV, {hero['ATK']} ATK et {hero['DEF']} DEF.")
-            '''
-            print (" voulez vous partir à l'aventure ?")
-            print("1. Oui")
-            print("2. Non")
-            choix = input("Choisissez une option: ")
-            if choix == '1':
-            '''
-                
+        # Initialisation des monstres
+        if self.monsters.count_documents({}) == 0:
+            monster_data = [
+                {'name': 'Gobelin', 'ATK': 17, 'DEF': 15, 'PV': 120},
+                {'name': 'Orc', 'ATK': 12, 'DEF': 6, 'PV': 45},
+                {'name': 'Squelette', 'ATK': 10, 'DEF': 5, 'PV': 35}
+            ]
+            self.monsters.insert_many(monster_data)
+            print("Monstres ajoutés.")
         else:
-             print("Héros introuvable.")
+            print(f"Monstres déjà présents : {self.monsters.count_documents({})}")
 
-    elif choix == '2':
-        nom = input("Nom de l'héros: ")
-        atk = int(input("ATK de l'héros: "))
-        def_ = int(input("DEF de l'héros: "))
-        pv = int(input("PV de l'héros: "))
-        ajouter_hero(nom, atk, def_, pv)
-    elif choix == '3':
-        print("Ajouter un monstre:")
-        for m in self.monstre_collection.find():
-            print(f"- {m['name']} (ATK: {m['ATK']}, DEF: {m['DEF']}, PV: {m['PV']})")
-        nom = input("Nom du monstre: ")
-        atk = int(input("ATK du monstre: "))
-        def_ = int(input("DEF du monstre: "))
-        pv = int(input("PV du monstre: "))
-        ajouter_monstre(nom, atk, def_, pv)
-    elif choix == '4':
-        print("Sauvegarde en cours...")
-        print("Sauvegarde not found!!!!!!!!!!!!!!!!")
-    
-    elif choix == '5':
-        print("Quitter le jeu.")
-        return False
-    else:
-        print("Option invalide. Veuillez choisir une option valide.")
-        
-    return True
-        
+        # Initialisation des héros
+        if self.heroes.count_documents({}) == 0:
+            hero_data = [
+                {'name': 'Guerrier', 'ATK': 15, 'DEF': 10, 'PV': 50},
+                {'name': 'Sorcier', 'ATK': 25, 'DEF': 3, 'PV': 70},
+                {'name': 'Berserker', 'ATK': 23, 'DEF': 6, 'PV': 105}
+            ]
+            self.heroes.insert_many(hero_data)
+            print("Héros ajoutés.")
+        else:
+            print(f"Héros déjà présents : {self.heroes.count_documents({})}")
+
+    def add_monster(self, name, atk, defense, pv):
+        monster = {'name': name, 'ATK': atk, 'DEF': defense, 'PV': pv}
+        result = self.monsters.insert_one(monster)
+        print(f"Monstre '{name}' ajouté (ID: {result.inserted_id})")
+        return result.inserted_id
+
+    def add_hero(self, name, atk, defense, pv):
+        hero = {'name': name, 'ATK': atk, 'DEF': defense, 'PV': pv}
+        result = self.heroes.insert_one(hero)
+        print(f"Héros '{name}' ajouté (ID: {result.inserted_id})")
+        return result.inserted_id
 
 
-def menu_combat(self):
-    print ("==========ennemies==========")
-    for e in self.enemies_collection.find():
-            print(f"- {e['name']} (ATK: {e['ATK']}, DEF: {e['DEF']}, PV: {e['PV']})")
-    
-    print("==========Menu:===========")
-    print("1. Attaquer")
-    print("2. Fuir")
-    print("4. Quitter")
-    
-   
- 
 class Game:
-    def __init__(self, hero_collection):
-        self.hero_collection = hero_collection
-    
-    def __init__(self, monstre_collection):
-        self.monstre_collection = monstre_collection
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def run(self):
         while True:
-            menu_principal()
-            continuer = choix_menu_principal(self)
-            if not continuer:
+            self.show_main_menu()
+            if not self.handle_main_choice():
                 break
+
+    def show_main_menu(self):
+        print("\n========== Menu Principal ==========")
+        print("1. Jouer")
+        print("2. Ajouter un héros")
+        print("3. Ajouter un monstre")
+        print("4. Sauvegarder")
+        print("5. Quitter")
+
+    def handle_main_choice(self):
+        choix = input("Choisissez une option: ").strip()
+
+        if choix == '1':
+            self.select_hero()
+        elif choix == '2':
+            self.create_hero()
+        elif choix == '3':
+            self.create_monster()
+        elif choix == '4':
+            print("Fonction de sauvegarde à implémenter...")
+        elif choix == '5':
+            print("Quitter le jeu.")
+            return False
+        else:
+            print("Option invalide. Veuillez réessayer.")
+        return True
+
+    def select_hero(self):
+        print("\n=== Liste des héros ===")
+        for h in self.db.heroes.find():
+            print(f"- {h['name']} (ATK: {h['ATK']}, DEF: {h['DEF']}, PV: {h['PV']})")
+
+        choix_hero = input("Nom du héros choisi: ").strip()
+        hero = self.db.heroes.find_one({'name': choix_hero})
+
+        if hero:
+            print(f"Vous avez choisi {hero['name']} (ATK {hero['ATK']}, DEF {hero['DEF']}, PV {hero['PV']}).")
+            self.start_combat()
+        else:
+            print("Héros introuvable.")
+
+    def create_hero(self):
+        print("\n=== Ajout d’un nouveau héros ===")
+        name = input("Nom : ")
+        atk = int(input("ATK : "))
+        defense = int(input("DEF : "))
+        pv = int(input("PV : "))
+        self.db.add_hero(name, atk, defense, pv)
+
+    def create_monster(self):
+        print("\n=== Ajout d’un nouveau monstre ===")
+        name = input("Nom : ")
+        atk = int(input("ATK : "))
+        defense = int(input("DEF : "))
+        pv = int(input("PV : "))
+        self.db.add_monster(name, atk, defense, pv)
+
+    def start_combat(self):
+        print("\n=== Liste des ennemis disponibles ===")
+        for m in self.db.monsters.find():
+            print(f"- {m['name']} (ATK: {m['ATK']}, DEF: {m['DEF']}, PV: {m['PV']})")
+
+        print("\n=== Menu de combat ===")
+        print("1. Attaquer")
+        print("2. Fuir")
+        print("3. Quitter le jeu")
+
+        choix = input("Choisissez une option: ").strip()
+        if choix == '1':
+            for m in self.db.monsters.find():
+                print(f"{m['name']} attaque !")
+        elif choix == '2':
+            print("Vous fuyez le combat...")
+        elif choix == '3':
+            print("Fin du jeu.")
+            exit()
+        else:
+            print("Choix invalide.")
+

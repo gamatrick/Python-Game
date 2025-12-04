@@ -1,10 +1,10 @@
-from pymongo import MongoClient
-from bson.objectid import ObjectId
 from game import Game
-from game import hero
-from game import client
+from game import DatabaseHandler
 
 if __name__ == "__main__":
-    game = Game(hero)
+    db_handler = DatabaseHandler()
+    db_handler.reset_collections()
+    db_handler.init_data()
+
+    game = Game(db_handler)
     game.run()
-    client.close()
